@@ -1,9 +1,12 @@
-import { test, expect } from '@playwright/test';
-import { acessarPaginaInicial } from '../utils/fluxos-autenticacao';
+import { test } from '../fixtures/pages';
 import { bloquearAnuncios } from '../utils/bloquear-anuncios';
 
 test.describe('Automation Exercise - Busca de Produto', () => {
-  test('deve buscar produto e exibir resultados relacionados', async ({ page }) => {
+  test('deve buscar produto e exibir resultados relacionados', async ({
+    homePage,
+    productsPage,
+    page,
+  }) => {
     const nomeProduto = 'top';
     await bloquearAnuncios(page);
 
@@ -12,26 +15,21 @@ test.describe('Automation Exercise - Busca de Produto', () => {
 
     // 2. Acessar a URL do site
     // 3. Validar que a página inicial foi carregada com sucesso
-    await acessarPaginaInicial(page);
+    await homePage.acessarEValidar();
 
     // 4. Clicar no botão "Products"
-    await page.getByRole('link', { name: 'Products' }).click();
+    await productsPage.abrirPeloMenu();
 
     // 5. Validar que o usuário foi navegado para a página ALL PRODUCTS
-    await expect(page).toHaveURL(/\/products$/);
-    await expect(page.getByRole('heading', { name: 'All Products' })).toBeVisible();
+    await productsPage.validarPaginaProdutosAberta();
 
     // 6. Informar o nome do produto no campo de busca e clicar no botão de pesquisa
-    await page.locator('#search_product').fill(nomeProduto);
-    await page.locator('#submit_search').click();
+    await productsPage.buscarProduto(nomeProduto);
 
     // 7. Validar que "SEARCHED PRODUCTS" está visível
-    await expect(page.getByRole('heading', { name: 'Searched Products' })).toBeVisible();
+    await productsPage.validarProdutosBuscadosVisiveis();
 
     // 8. Validar que os produtos relacionados à busca estão visíveis
-    const produtosEncontrados = page.locator('.features_items .product-image-wrapper');
-
-    await expect(produtosEncontrados.first()).toBeVisible();
-    await expect(produtosEncontrados.filter({ hasText: /top/i }).first()).toBeVisible();
+    await productsPage.validarResultadoContemTexto(/top/i);
   });
 });

@@ -1,14 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test } from '../fixtures/pages';
 import { gerarUsuarioTeste } from '../utils/gerar-usuario-teste';
 import { deletarUsuario } from '../utils/deletar-usuario';
-import { preencherFormularioCadastro } from '../utils/cadastrar-usuario';
-import {
-  acessarPaginaInicial,
-  abrirTelaLoginCadastro,
-} from '../utils/fluxos-autenticacao';
 
 test.describe('Automation Exercise - Cadastro de Usuário', () => {
-  test('deve preencher nome e email no início do cadastro', async ({ page }) => {
+  test('deve preencher nome e email no início do cadastro', async ({
+    accountPage,
+    homePage,
+    loginSignupPage,
+    page,
+  }) => {
     const usuario = gerarUsuarioTeste();
 
     // 1. Iniciar navegador
@@ -16,44 +16,35 @@ test.describe('Automation Exercise - Cadastro de Usuário', () => {
 
     // 2. Acessar a URL do site
     // 3. Validar que a página inicial foi carregada com sucesso
-    await acessarPaginaInicial(page);
+    await homePage.acessarEValidar();
 
     // 4. Clicar em "Signup / Login"
-    await abrirTelaLoginCadastro(page);
+    await homePage.abrirLoginCadastro();
 
     // 5. Validar que "New User Signup!" está visível
-    await expect(page.getByText('New User Signup!')).toBeVisible();
+    await loginSignupPage.validarFormularioCadastroVisivel();
 
     // 6. Informar nome e endereço de email
-    await page.getByPlaceholder('Name').fill(usuario.nome);
-
-    await page
-      .locator('form')
-      .filter({ hasText: 'Signup' })
-      .getByPlaceholder('Email Address')
-      .fill(usuario.email);
-
     // 7. Clicar no botão "Signup"
-    await page.getByRole('button', { name: 'Signup' }).click();
+    await loginSignupPage.iniciarCadastro(usuario);
 
     // 8. Validar que "Enter Account Information" está visível
-    await expect(page.getByText('Enter Account Information')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Enter Account Information' })).toBeVisible();
+    await loginSignupPage.validarInformacoesContaVisiveis();
 
     // 9. Preencher os detalhes da conta e dados de endereço
-    await preencherFormularioCadastro(page, usuario);
+    await loginSignupPage.preencherDetalhesConta(usuario);
 
     // 10. Clicar no botão "Create Account"
-    await page.getByTestId('create-account').click();
+    await loginSignupPage.criarConta();
 
     // 11. Validar que "Account Created!" está visível
-    await expect(page.getByTestId('account-created')).toBeVisible();
+    await accountPage.validarContaCriada();
 
     // 12. Clicar no botão "Continue"
-    await page.getByTestId('continue-button').click();
+    await accountPage.continuar();
 
     // 13. Validar que "Logged in as username" está visível
-    await expect(page.getByText(`Logged in as ${usuario.nome}`)).toBeVisible();
+    await accountPage.validarUsuarioLogado(usuario.nome);
 
     // 14. Deletar usuário criado
     await deletarUsuario(page);

@@ -1,45 +1,52 @@
-import { test, expect } from '@playwright/test';
-import { acessarPaginaInicial } from '../utils/fluxos-autenticacao';
+import { test } from '../fixtures/pages';
 import { gerarUsuarioTeste } from '../utils/gerar-usuario-teste';
 import { cadastrarUsuarioPelaTelaLogin } from '../utils/cadastrar-usuario';
 import { deletarUsuario } from '../utils/deletar-usuario';
 import { bloquearAnuncios } from '../utils/bloquear-anuncios';
-import {
-  adicionarPrimeiroProdutoAoCarrinho,
-  abrirCarrinho,
-  abrirProdutos,
-} from '../utils/fluxos-carrinho';
-import {
-  finalizarPedido,
-  irParaCheckout,
-  irParaLoginPeloCheckout,
-  validarEnderecosCheckout,
-} from '../utils/fluxos-pedido';
 
 test.describe('Automation Exercise - Download de Invoice', () => {
-  test('deve baixar invoice apos finalizar pedido', async ({ page }) => {
+  test('deve baixar invoice apos finalizar pedido', async ({
+    accountPage,
+    cartPage,
+    checkoutPage,
+    homePage,
+    paymentPage,
+    productsPage,
+    page,
+  }) => {
     test.setTimeout(60000);
     const usuario = gerarUsuarioTeste();
     await bloquearAnuncios(page);
 
-    await acessarPaginaInicial(page);
-    await abrirProdutos(page);
-    await adicionarPrimeiroProdutoAoCarrinho(page);
-    await abrirCarrinho(page);
-    await irParaLoginPeloCheckout(page);
+    await homePage.acessarEValidar();
+    await productsPage.abrirPeloMenu();
+    await productsPage.validarPaginaProdutosAberta();
+    await productsPage.adicionarProdutoAoCarrinho(1);
+    await cartPage.validarModalCarrinhoVisivel();
+    await cartPage.continuarComprando();
+    await cartPage.abrirPeloMenu();
+    await checkoutPage.irParaLoginPeloCheckout();
     await cadastrarUsuarioPelaTelaLogin(page, usuario);
 
-    await abrirCarrinho(page);
-    await irParaCheckout(page);
-    await validarEnderecosCheckout(page, usuario);
-    await finalizarPedido(page);
+    await cartPage.abrirPeloMenu();
+    await checkoutPage.irParaCheckout();
+    await checkoutPage.validarEnderecos(usuario);
+    await checkoutPage.informarComentario('Pedido criado por teste automatizado.');
+    await checkoutPage.fazerPedido();
+    await paymentPage.preencherCartao({
+      nome: 'Usuario Teste',
+      numero: '4111111111111111',
+      cvc: '123',
+      mesExpiracao: '12',
+      anoExpiracao: '2030',
+    });
+    await paymentPage.pagar();
+    await paymentPage.validarPedidoConfirmado();
 
-    const downloadPromise = page.waitForEvent('download');
-    await page.getByRole('link', { name: 'Download Invoice' }).click();
-    const download = await downloadPromise;
+    const download = await paymentPage.baixarInvoice();
 
-    expect(download.suggestedFilename()).toContain('invoice');
-    await page.getByTestId('continue-button').click();
+    await paymentPage.validarNomeArquivoInvoice(download);
+    await accountPage.continuar();
     await deletarUsuario(page);
   });
 });

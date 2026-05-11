@@ -1,15 +1,15 @@
-import { test, expect } from '@playwright/test';
+import { test } from '../fixtures/pages';
 import { gerarUsuarioTeste } from '../utils/gerar-usuario-teste';
 import { deletarUsuario } from '../utils/deletar-usuario';
 import { cadastrarUsuario } from '../utils/cadastrar-usuario';
-import {
-  acessarPaginaInicial,
-  abrirTelaLoginCadastro,
-  fazerLogin,
-} from '../utils/fluxos-autenticacao';
 
 test.describe('Automation Exercise - Login de Usuário', () => {
-  test('deve fazer login com email e senha corretos', async ({ page }) => {
+  test('deve fazer login com email e senha corretos', async ({
+    accountPage,
+    homePage,
+    loginSignupPage,
+    page,
+  }) => {
     const usuario = gerarUsuarioTeste();
 
     // Preparação: criar um usuário para usar credenciais válidas no login
@@ -20,20 +20,20 @@ test.describe('Automation Exercise - Login de Usuário', () => {
 
     // 2. Acessar a URL do site
     // 3. Validar que a página inicial foi carregada com sucesso
-    await acessarPaginaInicial(page);
+    await homePage.acessarEValidar();
 
     // 4. Clicar no botão "Signup / Login"
-    await abrirTelaLoginCadastro(page);
+    await homePage.abrirLoginCadastro();
 
     // 5. Validar que "Login to your account" está visível
-    await expect(page.getByText('Login to your account')).toBeVisible();
+    await loginSignupPage.validarFormularioLoginVisivel();
 
     // 6. Informar email e senha corretos
     // 7. Clicar no botão "Login"
-    await fazerLogin(page, usuario.email, usuario.senha);
+    await loginSignupPage.fazerLogin(usuario.email, usuario.senha);
 
     // 8. Validar que "Logged in as username" está visível
-    await expect(page.getByText(`Logged in as ${usuario.nome}`)).toBeVisible();
+    await accountPage.validarUsuarioLogado(usuario.nome);
 
     // 9. Clicar no botão "Delete Account"
     // 10. Validar que "ACCOUNT DELETED!" está visível

@@ -1,9 +1,18 @@
 {
   "name": "playwright_automationexercise",
   "version": "1.0.0",
-  "description": "",
+  "description": "Automacao de testes E2E do site Automation Exercise com Playwright.",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "quality": "npm run lint && npm run format:check"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/josafagonzaga/Playwright_automationexercise.git"
@@ -17,6 +26,10 @@
   "homepage": "https://github.com/josafagonzaga/Playwright_automationexercise#readme",
   "devDependencies": {
     "@playwright/test": "^1.59.1",
-    "@types/node": "^25.6.0"
+    "@types/node": "^25.6.0",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.3",
+    "typescript-eslint": "^8.59.3"
   }
 }

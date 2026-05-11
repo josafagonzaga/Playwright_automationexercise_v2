@@ -1,41 +1,52 @@
-import { test, expect } from '@playwright/test';
-import {
-  acessarPaginaInicial,
-  abrirTelaLoginCadastro,
-  fazerLogin,
-} from '../utils/fluxos-autenticacao';
+import { test } from '../fixtures/pages';
 import { gerarUsuarioTeste } from '../utils/gerar-usuario-teste';
 import { cadastrarUsuario } from '../utils/cadastrar-usuario';
 import { deletarUsuario } from '../utils/deletar-usuario';
 import { bloquearAnuncios } from '../utils/bloquear-anuncios';
-import {
-  adicionarPrimeiroProdutoAoCarrinho,
-  abrirCarrinho,
-  abrirProdutos,
-} from '../utils/fluxos-carrinho';
-import { finalizarPedido, irParaCheckout, validarEnderecosCheckout } from '../utils/fluxos-pedido';
 
 test.describe('Automation Exercise - Pedido com Login Antes do Checkout', () => {
-  test('deve fazer login antes do checkout e finalizar pedido', async ({ page }) => {
+  test('deve fazer login antes do checkout e finalizar pedido', async ({
+    accountPage,
+    cartPage,
+    checkoutPage,
+    homePage,
+    loginSignupPage,
+    paymentPage,
+    productsPage,
+    page,
+  }) => {
     test.setTimeout(60000);
     const usuario = gerarUsuarioTeste();
     await bloquearAnuncios(page);
 
     await cadastrarUsuario(page, usuario, { fazerLogout: true });
 
-    await acessarPaginaInicial(page);
-    await abrirTelaLoginCadastro(page);
-    await fazerLogin(page, usuario.email, usuario.senha);
-    await expect(page.getByText(`Logged in as ${usuario.nome}`)).toBeVisible();
+    await homePage.acessarEValidar();
+    await homePage.abrirLoginCadastro();
+    await loginSignupPage.fazerLogin(usuario.email, usuario.senha);
+    await accountPage.validarUsuarioLogado(usuario.nome);
 
-    await abrirProdutos(page);
-    await adicionarPrimeiroProdutoAoCarrinho(page);
-    await abrirCarrinho(page);
-    await irParaCheckout(page);
-    await validarEnderecosCheckout(page, usuario);
-    await finalizarPedido(page);
+    await productsPage.abrirPeloMenu();
+    await productsPage.validarPaginaProdutosAberta();
+    await productsPage.adicionarProdutoAoCarrinho(1);
+    await cartPage.validarModalCarrinhoVisivel();
+    await cartPage.continuarComprando();
+    await cartPage.abrirPeloMenu();
+    await checkoutPage.irParaCheckout();
+    await checkoutPage.validarEnderecos(usuario);
+    await checkoutPage.informarComentario('Pedido criado por teste automatizado.');
+    await checkoutPage.fazerPedido();
+    await paymentPage.preencherCartao({
+      nome: 'Usuario Teste',
+      numero: '4111111111111111',
+      cvc: '123',
+      mesExpiracao: '12',
+      anoExpiracao: '2030',
+    });
+    await paymentPage.pagar();
 
-    await expect(page.getByText('Order Placed!')).toBeVisible();
+    await paymentPage.validarPedidoConfirmado();
+    await paymentPage.validarPedidoRealizado();
     await deletarUsuario(page);
   });
 });

@@ -1,26 +1,26 @@
-import { test, expect } from '@playwright/test';
-import { acessarPaginaInicial } from '../utils/fluxos-autenticacao';
+import { test } from '../fixtures/pages';
 import { bloquearAnuncios } from '../utils/bloquear-anuncios';
-import {
-  adicionarPrimeiroProdutoAoCarrinho,
-  abrirCarrinho,
-  abrirProdutos,
-  linhaProduto,
-} from '../utils/fluxos-carrinho';
 
 test.describe('Automation Exercise - Remover Produtos do Carrinho', () => {
-  test('deve remover produto do carrinho', async ({ page }) => {
+  test('deve remover produto do carrinho', async ({ cartPage, homePage, productsPage, page }) => {
     await bloquearAnuncios(page);
 
-    await acessarPaginaInicial(page);
-    await abrirProdutos(page);
-    await adicionarPrimeiroProdutoAoCarrinho(page);
-    await abrirCarrinho(page);
+    await homePage.acessarEValidar();
+    await productsPage.abrirPeloMenu();
+    await productsPage.validarPaginaProdutosAberta();
+    await productsPage.adicionarProdutoAoCarrinho(1);
+    await cartPage.validarModalCarrinhoVisivel();
+    await cartPage.continuarComprando();
+    await cartPage.abrirPeloMenu();
 
-    await expect(linhaProduto(page, 1)).toBeVisible();
-    await linhaProduto(page, 1).locator('.cart_quantity_delete').click();
+    await cartPage.validarProduto({
+      id: 1,
+      nome: 'Blue Top',
+      quantidade: '1',
+    });
+    await cartPage.removerProduto(1);
 
-    await expect(linhaProduto(page, 1)).toBeHidden();
-    await expect(page.getByText('Cart is empty!')).toBeVisible();
+    await cartPage.validarProdutoRemovido(1);
+    await cartPage.validarCarrinhoVazio();
   });
 });

@@ -1,23 +1,15 @@
-import { expect, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { HomePage } from '../pages/home-page';
+import { LoginSignupPage } from '../pages/login-signup-page';
 
 export async function acessarPaginaInicial(page: Page): Promise<void> {
-  await page.goto('http://automationexercise.com');
-  await expect(page).toHaveTitle(/Automation Exercise/);
-  await expect(page.getByRole('link', { name: 'Signup / Login' })).toBeVisible();
+  await new HomePage(page).acessarEValidar();
 }
 
 export async function abrirTelaLoginCadastro(page: Page): Promise<void> {
-  await page.getByRole('link', { name: 'Signup / Login' }).click();
+  await new HomePage(page).abrirLoginCadastro();
 }
 
-export async function fazerLogin(
-  page: Page,
-  email: string,
-  senha: string
-): Promise<void> {
-  const formularioLogin = page.locator('form').filter({ hasText: 'Login' });
-
-  await formularioLogin.getByPlaceholder('Email Address').fill(email);
-  await page.getByPlaceholder('Password').fill(senha);
-  await formularioLogin.getByRole('button', { name: 'Login' }).click();
+export async function fazerLogin(page: Page, email: string, senha: string): Promise<void> {
+  await new LoginSignupPage(page).fazerLogin(email, senha);
 }

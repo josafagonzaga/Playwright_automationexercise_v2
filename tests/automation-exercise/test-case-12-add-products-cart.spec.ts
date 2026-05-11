@@ -1,30 +1,39 @@
-import { test, expect } from '@playwright/test';
-import { acessarPaginaInicial } from '../utils/fluxos-autenticacao';
+import { test } from '../fixtures/pages';
 import { bloquearAnuncios } from '../utils/bloquear-anuncios';
-import {
-  adicionarDoisProdutosAoCarrinho,
-  abrirProdutos,
-  linhaProduto,
-  verCarrinhoPeloModal,
-} from '../utils/fluxos-carrinho';
 
 test.describe('Automation Exercise - Produtos no Carrinho', () => {
-  test('deve adicionar dois produtos ao carrinho e validar valores', async ({ page }) => {
+  test('deve adicionar dois produtos ao carrinho e validar valores', async ({
+    cartPage,
+    homePage,
+    productsPage,
+    page,
+  }) => {
     await bloquearAnuncios(page);
 
-    await acessarPaginaInicial(page);
-    await abrirProdutos(page);
-    await adicionarDoisProdutosAoCarrinho(page);
-    await verCarrinhoPeloModal(page);
+    await homePage.acessarEValidar();
+    await productsPage.abrirPeloMenu();
+    await productsPage.validarPaginaProdutosAberta();
+    await productsPage.adicionarProdutoAoCarrinho(1);
+    await cartPage.validarModalCarrinhoVisivel();
+    await cartPage.continuarComprando();
+    await productsPage.adicionarProdutoAoCarrinho(2);
+    await cartPage.validarModalCarrinhoVisivel();
+    await cartPage.abrirPeloModal();
 
-    await expect(linhaProduto(page, 1)).toContainText('Blue Top');
-    await expect(linhaProduto(page, 1).locator('.cart_price')).toHaveText('Rs. 500');
-    await expect(linhaProduto(page, 1).locator('.cart_quantity')).toHaveText('1');
-    await expect(linhaProduto(page, 1).locator('.cart_total')).toHaveText('Rs. 500');
+    await cartPage.validarProduto({
+      id: 1,
+      nome: 'Blue Top',
+      preco: 'Rs. 500',
+      quantidade: '1',
+      total: 'Rs. 500',
+    });
 
-    await expect(linhaProduto(page, 2)).toContainText('Men Tshirt');
-    await expect(linhaProduto(page, 2).locator('.cart_price')).toHaveText('Rs. 400');
-    await expect(linhaProduto(page, 2).locator('.cart_quantity')).toHaveText('1');
-    await expect(linhaProduto(page, 2).locator('.cart_total')).toHaveText('Rs. 400');
+    await cartPage.validarProduto({
+      id: 2,
+      nome: 'Men Tshirt',
+      preco: 'Rs. 400',
+      quantidade: '1',
+      total: 'Rs. 400',
+    });
   });
 });

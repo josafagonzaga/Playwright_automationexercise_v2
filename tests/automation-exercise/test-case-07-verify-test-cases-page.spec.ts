@@ -1,9 +1,12 @@
-import { test, expect } from '@playwright/test';
-import { acessarPaginaInicial } from '../utils/fluxos-autenticacao';
+import { test } from '../fixtures/pages';
 import { bloquearAnuncios } from '../utils/bloquear-anuncios';
 
 test.describe('Automation Exercise - Pagina de Casos de Teste', () => {
-  test('deve navegar para a pagina de casos de teste com sucesso', async ({ page }) => {
+  test('deve navegar para a pagina de casos de teste com sucesso', async ({
+    homePage,
+    testCasesPage,
+    page,
+  }) => {
     await bloquearAnuncios(page);
 
     // 1. Iniciar navegador
@@ -11,14 +14,12 @@ test.describe('Automation Exercise - Pagina de Casos de Teste', () => {
 
     // 2. Acessar a URL do site
     // 3. Validar que a página inicial foi carregada com sucesso
-    await acessarPaginaInicial(page);
+    await homePage.acessarEValidar();
 
     // 4. Clicar no botão "Test Cases"
-    await page.locator('header').getByRole('link', { name: 'Test Cases' }).click();
+    await testCasesPage.abrirPeloMenu();
 
     // 5. Validar que o usuário foi navegado para a página de casos de teste
-    await expect(page).toHaveURL(/\/test_cases$/);
-    await expect(page.locator('h2.title').getByText('Test Cases')).toBeVisible();
-    await expect(page.getByText('Below is the list of test Cases')).toBeVisible();
+    await testCasesPage.validarAberta();
   });
 });

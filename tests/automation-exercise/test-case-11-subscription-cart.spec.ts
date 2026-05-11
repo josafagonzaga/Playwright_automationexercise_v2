@@ -1,23 +1,24 @@
-import { test, expect } from '@playwright/test';
-import { acessarPaginaInicial } from '../utils/fluxos-autenticacao';
+import { test } from '../fixtures/pages';
 import { gerarUsuarioTeste } from '../utils/gerar-usuario-teste';
 import { bloquearAnuncios } from '../utils/bloquear-anuncios';
-import { abrirCarrinho } from '../utils/fluxos-carrinho';
 
 test.describe('Automation Exercise - Inscricao no Carrinho', () => {
-  test('deve validar subscription na pagina de carrinho', async ({ page }) => {
+  test('deve validar subscription na pagina de carrinho', async ({
+    cartPage,
+    homePage,
+    subscriptionComponent,
+    page,
+  }) => {
     const usuario = gerarUsuarioTeste();
     await bloquearAnuncios(page);
 
-    await acessarPaginaInicial(page);
-    await abrirCarrinho(page);
+    await homePage.acessarEValidar();
+    await cartPage.abrirPeloMenu();
 
-    await page.locator('footer').scrollIntoViewIfNeeded();
-    await expect(page.getByRole('heading', { name: 'Subscription' })).toBeVisible();
+    await subscriptionComponent.validarVisivel();
 
-    await page.locator('#susbscribe_email').fill(usuario.email);
-    await page.locator('#subscribe').click();
+    await subscriptionComponent.cadastrarEmail(usuario.email);
 
-    await expect(page.getByText('You have been successfully subscribed!')).toBeVisible();
+    await subscriptionComponent.validarCadastroRealizado();
   });
 });
