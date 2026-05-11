@@ -1,6 +1,4 @@
-Teste  CI/CD
-
-
+Teste CI/CD
 
 # Playwright Automation Exercise
 
