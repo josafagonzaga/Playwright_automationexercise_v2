@@ -1,3 +1,7 @@
+Teste  CI/CD
+
+
+
 # Playwright Automation Exercise
 
 Automacao de testes E2E do site [Automation Exercise](https://automationexercise.com) usando Playwright, TypeScript, Page Objects e fixtures customizadas.
